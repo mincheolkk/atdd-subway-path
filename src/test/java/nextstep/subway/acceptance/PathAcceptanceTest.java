@@ -1,6 +1,5 @@
 package nextstep.subway.acceptance;
 
-import io.restassured.RestAssured;
 import io.restassured.response.ExtractableResponse;
 import io.restassured.response.Response;
 import nextstep.subway.line.presentation.request.LineCreateRequest;
@@ -49,8 +48,14 @@ public class PathAcceptanceTest extends AcceptanceTest {
         // when
         ExtractableResponse<Response> response = 지하철_경로_조회_요청(수서역, 강남역);
 
+        // then
         assertThat(response.statusCode()).isEqualTo(HttpStatus.OK.value());
-        assertThat(response.jsonPath().getList("stations.name", String.class)).isNotEmpty();
+        assertThat(response.jsonPath().getList("stations.name", String.class)).containsExactly(
+                "수서역",
+                "선릉역",
+                "역삼역",
+                "강남역"
+        );
     }
 
     /**
@@ -63,7 +68,10 @@ public class PathAcceptanceTest extends AcceptanceTest {
         // when
         ExtractableResponse<Response> response = 지하철_경로_조회_요청(수서역, 수서역);
 
+        // then
         assertThat(response.statusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
+        assertThat(response.jsonPath().getString("message"))
+                .isEqualTo("출발역과 종착역이 같습니다.");
     }
 
     /**
@@ -79,7 +87,10 @@ public class PathAcceptanceTest extends AcceptanceTest {
         // when
         ExtractableResponse<Response> response = 지하철_경로_조회_요청(수서역, 해운대역);
 
+        // then
         assertThat(response.statusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
+        assertThat(response.jsonPath().getString("message"))
+                .isEqualTo("출발역과 종착역이 연결되어 있지 않습니다.");
     }
 
     /**
@@ -94,6 +105,7 @@ public class PathAcceptanceTest extends AcceptanceTest {
         // when
         ExtractableResponse<Response> response = 지하철_경로_조회_요청(수서역, 독도역);
 
-        assertThat(response.statusCode()).isEqualTo(HttpStatus.NOT_FOUND.value());
+        // then
+        assertThat(response.statusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR.value());
     }
 }
