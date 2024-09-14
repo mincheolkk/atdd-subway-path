@@ -6,6 +6,7 @@ import javax.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import nextstep.subway.path.api.response.PathResponse;
+import nextstep.subway.path.domain.PathEvent;
 import nextstep.subway.section.SectionRepository;
 import nextstep.subway.section.domain.Section;
 import nextstep.subway.station.Station;
@@ -20,6 +21,8 @@ import org.springframework.stereotype.Service;
 import javax.persistence.EntityNotFoundException;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 
 @Getter
@@ -34,6 +37,15 @@ public class PathService {
     private WeightedMultigraph<Long, DefaultWeightedEdge> graph;
 
     @PostConstruct
+    public void init() {
+        cacheData();
+    }
+
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void handlePathEvent(PathEvent event) {
+        cacheData();
+    }
+
     public void cacheData() {
         stations = stationRepository.findAll().stream()
                 .collect(Collectors.toMap(Station::getId, station -> station));

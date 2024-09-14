@@ -17,12 +17,10 @@ import java.util.List;
 public class LineController {
 
     private final LineService lineService;
-    private final PathService pathService;
 
     @PostMapping("/lines")
     public ResponseEntity<LineResponse> createLine(@RequestBody LineCreateRequest request) {
         LineResponse lineResponse = lineService.create(request);
-        pathService.cacheData();
         return ResponseEntity.created(URI.create("/lines/" + lineResponse.getId()))
                 .body(lineResponse);
     }

@@ -2,6 +2,7 @@ package nextstep.subway.station;
 
 import lombok.RequiredArgsConstructor;
 import nextstep.subway.path.api.PathService;
+import nextstep.subway.path.domain.PathEvent;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,8 +17,7 @@ public class StationController {
 
     @PostMapping("/stations")
     public ResponseEntity<StationResponse> createStation(@RequestBody StationRequest stationRequest) {
-        StationResponse station = stationService.saveStation(stationRequest);
-        pathService.cacheData();
+        StationResponse station = stationService.saveStation(stationRequest, new PathEvent(this));
         return ResponseEntity.created(URI.create("/stations/" + station.getId())).body(station);
     }
 
@@ -28,8 +28,7 @@ public class StationController {
 
     @DeleteMapping("/stations/{id}")
     public ResponseEntity<Void> deleteStation(@PathVariable Long id) {
-        stationService.deleteStationById(id);
-        pathService.cacheData();
+        stationService.deleteStationById(id, new PathEvent(this));
         return ResponseEntity.noContent().build();
     }
 }
