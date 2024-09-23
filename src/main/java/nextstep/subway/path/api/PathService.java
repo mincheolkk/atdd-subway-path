@@ -2,7 +2,6 @@ package nextstep.subway.path.api;
 
 import java.util.Map;
 import java.util.Objects;
-import javax.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import nextstep.subway.path.api.response.PathResponse;
@@ -14,61 +13,19 @@ import nextstep.subway.station.StationRepository;
 import nextstep.subway.station.StationResponse;
 import org.jgrapht.GraphPath;
 import org.jgrapht.alg.shortestpath.DijkstraShortestPath;
-import org.jgrapht.graph.DefaultWeightedEdge;
-import org.jgrapht.graph.WeightedMultigraph;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityNotFoundException;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.springframework.transaction.event.TransactionPhase;
-import org.springframework.transaction.event.TransactionalEventListener;
 
 
-@Getter
 @RequiredArgsConstructor
 @Service
 public class PathService {
 
     private final StationRepository stationRepository;
     private final SectionRepository sectionRepository;
-    private Map<Long, Station> stations;
-    private List<Section> sections;
-    private WeightedMultigraph<Long, DefaultWeightedEdge> graph;
-
-    @PostConstruct
-    public void init() {
-        cacheData();
-    }
-
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void handlePathEvent(PathEvent event) {
-        cacheData();
-    }
-
-    public void cacheData() {
-        stations = stationRepository.findAll().stream()
-                .collect(Collectors.toMap(Station::getId, station -> station));
-        sections = sectionRepository.findAll();
-        graph = createGraph(sections);
-    }
-
-    private WeightedMultigraph<Long, DefaultWeightedEdge> createGraph(List<Section> sections) {
-        final var graph =
-                WeightedMultigraph.<Long, DefaultWeightedEdge>builder(DefaultWeightedEdge.class).build();
-
-        sections.stream().forEach(
-                section -> {
-                    graph.addVertex(section.getUpStationId());
-                    graph.addVertex(section.getDownStationId());
-
-                    DefaultWeightedEdge edge = graph.addEdge(section.getUpStationId(), section.getDownStationId());
-                    graph.setEdgeWeight(edge, section.getDistance());
-                }
-        );
-
-        return graph;
-    }
 
     public PathResponse getPath(Long source, Long target) {
         validateStation(source, target);
@@ -119,6 +76,4 @@ public class PathService {
                 .filter(Objects::nonNull) // null 필터링
                 .collect(Collectors.toList());
     }
-
-
 }
