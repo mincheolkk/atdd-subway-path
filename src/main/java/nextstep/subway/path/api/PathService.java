@@ -2,10 +2,9 @@ package nextstep.subway.path.api;
 
 import java.util.Map;
 import java.util.Objects;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import nextstep.subway.path.api.response.PathResponse;
-import nextstep.subway.path.domain.PathEvent;
+import nextstep.subway.path.domain.SubwayGraph;
 import nextstep.subway.section.SectionRepository;
 import nextstep.subway.section.domain.Section;
 import nextstep.subway.station.Station;
@@ -47,7 +46,9 @@ public class PathService {
     }
 
     public PathResponse findPath(Long sourceId, Long targetId) {
-        DijkstraShortestPath dijkstraShortestPath = new DijkstraShortestPath(graph);
+        List<Section> sections = sectionRepository.findAll();
+        SubwayGraph subwayGraph = new SubwayGraph(sections);
+        DijkstraShortestPath dijkstraShortestPath = subwayGraph.getShortestPath();
         GraphPath shortestPath = null;
 
         try {
@@ -68,6 +69,9 @@ public class PathService {
     }
 
     private List<StationResponse> convertToStationResponses(List<Long> stationIds) {
+        Map<Long, Station> stations = stationRepository.findAll().stream()
+                .collect(Collectors.toMap(Station::getId, station -> station));
+
         return stationIds.stream()
                 .map(id -> {
                     Station station = stations.get(id);
