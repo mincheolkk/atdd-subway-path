@@ -84,21 +84,17 @@ class PathServiceTest {
                 구간_생성(논현역.getId(), 강남역.getId(), 4),
                 구간_생성(파리역.getId(), 런던역.getId(), 10000)
         );
-
-        given(stationRepository.findAll()).willReturn(List.of(강남역, 역삼역, 선릉역, 선정릉역, 강남구청역, 학동역, 논현역, 런던역, 파리역));
-        given(sectionRepository.findAll()).willReturn(구간들);
-
-        pathService.cacheData();
     }
 
     @Test
     void 경로에_포함된_역과_총거리를_반환한다() {
         // given
+        given(stationRepository.findAll()).willReturn(List.of(강남역, 역삼역, 선릉역, 선정릉역, 강남구청역, 학동역, 논현역, 런던역, 파리역));
+        given(sectionRepository.findAll()).willReturn(구간들);
         given(stationRepository.findById(강남역.getId())).willReturn(Optional.of(강남역));
         given(stationRepository.findById(선정릉역.getId())).willReturn(Optional.of(선정릉역));
 
         // when
-        pathService.cacheData();
         PathResponse response = pathService.getPath(강남역.getId(), 선정릉역.getId());
 
         // then
@@ -119,7 +115,6 @@ class PathServiceTest {
         given(sectionRepository.findAll()).willReturn(구간들);
 
         // when && then
-        pathService.cacheData();
         assertThatThrownBy(() -> pathService.getPath(강남역.getId(), 런던역.getId()))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("출발역과 종착역이 연결되어 있지 않습니다.");
@@ -161,6 +156,10 @@ class PathServiceTest {
 
     @Test
     void 최단_경로_조회에_성공한다() {
+        // given
+        given(stationRepository.findAll()).willReturn(List.of(강남역, 역삼역, 선릉역, 선정릉역, 강남구청역, 학동역, 논현역, 런던역, 파리역));
+        given(sectionRepository.findAll()).willReturn(구간들);
+
         // when
         PathResponse pathResponse = pathService.findPath(강남역.getId(), 선정릉역.getId());
 
@@ -176,6 +175,10 @@ class PathServiceTest {
 
     @Test
     void 최단_경로_조회에_성공한다2() {
+        // given
+        given(stationRepository.findAll()).willReturn(List.of(강남역, 역삼역, 선릉역, 선정릉역, 강남구청역, 학동역, 논현역, 런던역, 파리역));
+        given(sectionRepository.findAll()).willReturn(구간들);
+
         // when
         PathResponse result = pathService.findPath(런던역.getId(), 파리역.getId());
 
